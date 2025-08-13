@@ -19,7 +19,7 @@ class ApiClient
 
     public function __construct(array $connection, string $apiBaseUrl)
     {
-        $requiredKeys = ['tenant_id', 'client_id', 'client_secret'];
+        $requiredKeys = ['tenant_id', 'client_id', 'client_secret', 'environment'];
 
         foreach ($requiredKeys as $key) {
             if (empty($connection[$key])) {
@@ -30,6 +30,7 @@ class ApiClient
         $this->tenant = $connection['tenant_id'];
         $this->clientId = $connection['client_id'];
         $this->clientSecret = $connection['client_secret'];
+        $this->database = $connection['environment'];
         $this->company = $connection['company_id'] ?? null;
 
         $this->http = new Client([
@@ -99,7 +100,7 @@ class ApiClient
     /**
      * Perform a GET request to a Business Central API endpoint.
      */
-    public function get(ApiEndPoint $target, array $query = []): array
+    public function getRequest(ApiEndPoint $target, array $query = []): ApiResponse
     {
         if (empty($this->database)) {
             throw new RuntimeException("Database must be selected before making requests.");
@@ -115,13 +116,23 @@ class ApiClient
             'query' => $query,
         ]);
 
-        $result = json_decode((string)$response->getBody(), true);
+        return new ApiResponse($response);
+    }
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new RuntimeException("Invalid JSON response: " . json_last_error_msg());
+    public function get(string $target, mixed $filters = null, $full = false): ApiResponse
+    {
+        if (class_exists($target)) {
+            $endpoint = new $target();
+            if ($full === false) {
+                $endpoint->select($endpoint::$select);
+            }
+        } else {
+            $endpoint = ApiEndPoint::static($target);
         }
-
-        return $result;
+        if ($filters && is_array($filters)) {
+            $endpoint->addFilters($filters);
+        }
+        return $this->getRequest($endpoint);
     }
 
     /**

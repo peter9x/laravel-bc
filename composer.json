@@ -9,10 +9,24 @@
             "email": "your-email@example.com"
         }
     ],
+    "homepage": "https://github.com/peter9x/laravel-bc",
+    "keywords": [
+        "Laravel",
+        "Business Central",
+        "Microsoft Business Central",
+        "Microsoft",
+        "BC"
+    ],
     "require": {
-        "php": "^8.1",
-        "illuminate/support": "^9.0",
-        "guzzlehttp/guzzle": "^7.0"
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "league/oauth2-client": "^2",
+        "guzzlehttp/guzzle": "7.x",
+        "ext-json": "*",
+        "ext-fileinfo": "*",
+        "ext-curl": "*"
+    },
+    "require-dev": {
+        "pestphp/pest": "^v2.34|^3.7"
     },
     "autoload": {
         "psr-4": {
@@ -23,7 +37,10 @@
         "laravel": {
             "providers": [
                 "Mupy\\BusinessCentral\\BusinessCentralServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "BusinessCentral": "Mupy\\BusinessCentral\\Facades\\BusinessCentral"
+            }
         }
     },
     "minimum-stability": "dev",

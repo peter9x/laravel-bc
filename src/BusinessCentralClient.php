@@ -2,56 +2,32 @@
 
 namespace Mupy\BusinessCentral;
 
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Cache;
+use InvalidArgumentException;
 
 class BusinessCentralClient
 {
-    protected $config;
-    protected $http;
+    private array $config;
 
     public function __construct(array $config)
     {
+        if (!isset($config['connections']) || !is_array($config['connections'])) {
+            throw new InvalidArgumentException("Config must have a 'connections' array.");
+        }
+        if (!isset($config['api_url'])) {
+            throw new InvalidArgumentException("Config must have an 'api_url' defined.");
+        }
+
         $this->config = $config;
-        $this->http = new Client([
-            'base_uri' => $this->config['api_url'] . $this->config['environment'] . '/' . $this->config['tenant_id'] . '/',
-        ]);
     }
 
-    protected function getAccessToken()
+    public function getClient(string $connectionName = 'default'): ApiClient
     {
-        return Cache::remember('bc_access_token', 3500, function () {
-            $response = $this->http->post('https://login.microsoftonline.com/' . $this->config['tenant_id'] . '/oauth2/v2.0/token', [
-                'form_params' => [
-                    'grant_type' => 'client_credentials',
-                    'client_id' => $this->config['client_id'],
-                    'client_secret' => $this->config['client_secret'],
-                    'scope' => 'https://api.businesscentral.dynamics.com/.default',
-                ],
-            ]);
+        if (!isset($this->config['connections'][$connectionName])) {
+            throw new InvalidArgumentException("The Business Central connection '{$connectionName}' doesn't exist.");
+        }
 
-            $data = json_decode($response->getBody(), true);
-            return $data['access_token'];
-        });
-    }
+        $connection = $this->config['connections'][$connectionName];
 
-    public function get($endpoint, $query = [])
-    {
-        $response = $this->http->get($endpoint, [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->getAccessToken(),
-                'Accept' => 'application/json',
-            ],
-            'query' => $query,
-        ]);
-
-        return json_decode($response->getBody(), true);
-    }
-
-    // Example method
-    public function getCustomers()
-    {
-        $company = $this->config['company_id'];
-        return $this->get("companies({$company})/customers");
+        return new ApiClient($connection, $this->config['api_url']);
     }
 }

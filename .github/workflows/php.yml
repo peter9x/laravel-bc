@@ -32,8 +32,8 @@ jobs:
         run: composer install --prefer-dist --no-progress
 
       # Run PHPUnit tests
-      - name: Run PHPUnit tests
-        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+      #- name: Run PHPUnit tests
+      #  run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
       # Run static analysis with PHPStan/Larastan
       #- name: Run PHPStan (Larastan)

@@ -6,7 +6,9 @@ Laravel package for Microsoft Business Central API
 
 ```bash
 composer require peter9x/laravel-bc
+```
 
+```bash
 php artisan vendor:publish --provider="Mupy\BusinessCentral\BusinessCentralServiceProvider" --tag=config
 ```
 

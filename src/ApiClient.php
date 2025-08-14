@@ -67,6 +67,11 @@ class ApiClient
         return $this;
     }
 
+    public function selectEnv(string $database): self
+    {
+        return $this->selectDB($database);
+    }
+
     /**
      * Retrieve a cached access token for the tenant/client combination.
      */

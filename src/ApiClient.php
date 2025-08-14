@@ -4,19 +4,27 @@ namespace Mupy\BusinessCentral;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Cache;
-use Mupy\BusinessCentral\EndPoint\ApiEndPoint;
 use InvalidArgumentException;
+use Mupy\BusinessCentral\EndPoint\ApiEndPoint;
 use RuntimeException;
 
 class ApiClient
 {
     private Client $http;
+
     private string $tenant;
+
     private string $clientId;
+
     private string $clientSecret;
-    private ?string $database = null;
+
+    private string $database;
+
     private ?string $company = null;
 
+    /**
+     * @param  array{tenant_id: string, client_id: string, client_secret: string, environment: string, company_id?: string}  $connection
+     */
     public function __construct(array $connection, string $apiBaseUrl)
     {
         $requiredKeys = ['tenant_id', 'client_id', 'client_secret', 'environment'];
@@ -34,7 +42,7 @@ class ApiClient
         $this->company = $connection['company_id'] ?? null;
 
         $this->http = new Client([
-            'base_uri' => rtrim($apiBaseUrl, '/') . '/',
+            'base_uri' => rtrim($apiBaseUrl, '/').'/',
             'timeout' => 10.0,
         ]);
     }
@@ -45,7 +53,7 @@ class ApiClient
     public function useCompany(string $companyId): self
     {
         if (empty($companyId)) {
-            throw new InvalidArgumentException("Company ID cannot be empty.");
+            throw new InvalidArgumentException('Company ID cannot be empty.');
         }
 
         $clone = clone $this;
@@ -60,10 +68,11 @@ class ApiClient
     public function selectDB(string $database): self
     {
         if (empty($database)) {
-            throw new InvalidArgumentException("Database cannot be empty.");
+            throw new InvalidArgumentException('Database cannot be empty.');
         }
 
         $this->database = $database;
+
         return $this;
     }
 
@@ -75,11 +84,15 @@ class ApiClient
     /**
      * Retrieve a cached access token for the tenant/client combination.
      */
+    /**
+     * @throws \RuntimeException
+     */
     public function getBearer(): string
     {
         $cacheKey = "bc_access_token_{$this->tenant}_{$this->clientId}";
 
-        return Cache::remember($cacheKey, 3500, function () {
+        /** @var string */
+        return Cache::remember($cacheKey, 3500, function (): string {
             $tokenUrl = "https://login.microsoftonline.com/{$this->tenant}/oauth2/v2.0/token";
 
             $response = $this->http->post($tokenUrl, [
@@ -91,11 +104,12 @@ class ApiClient
                 ],
             ]);
 
-            $data = json_decode((string)$response->getBody(), true);
+            /** @var array{access_token?: string, error_description?: string} $data */
+            $data = json_decode((string) $response->getBody(), true);
 
             if (empty($data['access_token'])) {
                 $errorMsg = $data['error_description'] ?? 'Unknown error while fetching access token';
-                throw new RuntimeException("Failed to obtain access token: {$errorMsg}");
+                throw new RuntimeException('Failed to obtain access token: '.$errorMsg);
             }
 
             return $data['access_token'];
@@ -105,17 +119,20 @@ class ApiClient
     /**
      * Perform a GET request to a Business Central API endpoint.
      */
+    /**
+     * @param  array<string, mixed>  $query
+     */
     public function getRequest(ApiEndPoint $target, array $query = []): ApiResponse
     {
         if (empty($this->database)) {
-            throw new RuntimeException("Database must be selected before making requests.");
+            throw new RuntimeException('Database must be selected before making requests.');
         }
 
         $endpoint = $this->buildEndpoint($target);
 
         $response = $this->http->get($endpoint, [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->getBearer(),
+                'Authorization' => 'Bearer '.$this->getBearer(),
                 'Accept' => 'application/json',
             ],
             'query' => $query,
@@ -124,19 +141,26 @@ class ApiClient
         return new ApiResponse($response);
     }
 
-    public function get(string $target, mixed $filters = null, $full = false): ApiResponse
+    /**
+     * @param  class-string<ApiEndPoint>|string  $target
+     * @param  array<string>|null  $filters
+     */
+    public function get(string $target, ?array $filters = null, bool $full = false): ApiResponse
     {
-        if (class_exists($target)) {
-            $endpoint = new $target();
+        if (is_subclass_of($target, ApiEndPoint::class)) {
+            /** @var ApiEndPoint $endpoint */
+            $endpoint = new $target;
             if ($full === false) {
                 $endpoint->select($endpoint::$select);
             }
         } else {
             $endpoint = ApiEndPoint::static($target);
         }
-        if ($filters && is_array($filters)) {
+
+        if ($filters !== null) {
             $endpoint->addFilters($filters);
         }
+
         return $this->getRequest($endpoint);
     }
 
@@ -146,7 +170,7 @@ class ApiClient
     private function buildEndpoint(ApiEndPoint $target): string
     {
         $path = sprintf(
-            "%s/api/%s/%s/%s%s%s",
+            '%s/api/%s/%s/%s%s%s',
             $this->database,
             $target->publisher(),
             $target->group(),

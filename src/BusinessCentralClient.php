@@ -10,10 +10,10 @@ class BusinessCentralClient
 
     public function __construct(array $config)
     {
-        if (!isset($config['connections']) || !is_array($config['connections'])) {
+        if (! isset($config['connections']) || ! is_array($config['connections'])) {
             throw new InvalidArgumentException("Config must have a 'connections' array.");
         }
-        if (!isset($config['api_url'])) {
+        if (! isset($config['api_url'])) {
             throw new InvalidArgumentException("Config must have an 'api_url' defined.");
         }
 
@@ -22,7 +22,7 @@ class BusinessCentralClient
 
     public function getClient(string $connectionName = 'default'): ApiClient
     {
-        if (!isset($this->config['connections'][$connectionName])) {
+        if (! isset($this->config['connections'][$connectionName])) {
             throw new InvalidArgumentException("The Business Central connection '{$connectionName}' doesn't exist.");
         }
 

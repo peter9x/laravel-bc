@@ -1,3 +1,7 @@
+<p align="center">
+    <a href="https://github.com/peter9x/laravel-bc/actions"><img src="https://github.com/peter9x/laravel-bc/actions/workflows/php.yml/badge.svg" alt="Build Status"></a>
+</p>
+
 # Laravel Business Central
 
 A Laravel package for integrating with the **Microsoft Business Central API**.

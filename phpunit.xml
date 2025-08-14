@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php"
+         colors="true"
+         stopOnFailure="false"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         beStrictAboutOutputDuringTests="true">
+    <testsuites>
+        <testsuite name="Package Test Suite">
+            <directory suffix="Test.php">tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="BC_CLIENT_ID" value="sync"/>
+        <env name="BC_CLIENT_SECRET" value="sync"/>
+        <env name="BC_TENANT_ID" value="sync"/>
+        <env name="BC_ENVIRONMENT" value="sync"/>
+        <env name="BC_COMPANY_ID" value="sync"/>
+    </php>
+</phpunit>

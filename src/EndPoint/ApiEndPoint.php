@@ -4,16 +4,21 @@ namespace Mupy\BusinessCentral\EndPoint;
 
 abstract class ApiEndPoint
 {
-    protected $APIGroup = '';
-    protected $APIPublisher = '';
-    protected $APIVersion = 'v2.0';
-    protected $EntitySetName = null;
-    protected $StaticPath = null;
+    protected string $APIGroup = '';
 
-    public static $select = [];
+    protected string $APIPublisher = '';
 
-    /** @var array */
-    private $filters = [];
+    protected string $APIVersion = 'v2.0';
+
+    protected string $EntitySetName;
+
+    protected string $StaticPath;
+
+    /** @var array<string> */
+    public static array $select = [];
+
+    /** @var array<string> */
+    private array $filters = [];
 
     public function getPath(): string
     {
@@ -35,44 +40,59 @@ abstract class ApiEndPoint
         return $this->APIVersion;
     }
 
-    public function addFilter(string $string_filters)
+    public function addFilter(string $stringFilter): void
     {
-        $this->filters[] = $string_filters;
+        $this->filters[] = $stringFilter;
     }
 
-    public function addFilters(array $filters)
+    /**
+     * @param  array<string>  $filters
+     */
+    public function addFilters(array $filters): void
     {
         foreach ($filters as $filter) {
             $this->addFilter($filter);
         }
     }
 
-    public function select(array $select = [])
+    /**
+     * @param  array<string>  $select
+     */
+    public function select(array $select = []): void
     {
         if (count($select) > 0) {
-            $this->addFilter('$select=' . implode(',', $select));
+            $this->addFilter('$select='.implode(',', $select));
         }
     }
 
     public function getQuery(): string
     {
-        return count($this->filters) > 0 ? '?' . implode("&", $this->filters) : '';
+        return count($this->filters) > 0 ? '?'.implode('&', $this->filters) : '';
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getQuery();
     }
 
-    public function setStaticPath($path)
+    public function setStaticPath(string $path): void
     {
         $this->StaticPath = $path;
     }
 
-    public static function static($path)
+    /**
+     * Cria um endpoint estático
+     */
+    public static function static(string $path): self
     {
-        $endpoint = new ApiEndPoint();
-        $endpoint->setStaticPath($path);
+        $endpoint = new class($path) extends ApiEndPoint
+        {
+            public function __construct(string $path)
+            {
+                $this->setStaticPath($path);
+            }
+        };
+
         return $endpoint;
     }
 }

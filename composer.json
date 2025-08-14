@@ -28,6 +28,11 @@
     "require-dev": {
         "pestphp/pest": "^v2.34|^3.7"
     },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
     "autoload": {
         "psr-4": {
             "Mupy\\BusinessCentral\\": "src/"

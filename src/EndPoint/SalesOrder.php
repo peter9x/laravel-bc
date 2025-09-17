@@ -10,5 +10,5 @@ class SalesOrder extends ApiEndPoint
 
     protected string $APIVersion = 'v2.0';
 
-    protected string $EntitySetName = 'salesOrders';
+    protected ?string $EntitySetName = 'salesOrders';
 }

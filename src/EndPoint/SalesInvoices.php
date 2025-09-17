@@ -10,5 +10,5 @@ class SalesInvoices extends ApiEndPoint
 
     protected string $APIVersion = 'v2.0';
 
-    protected string $EntitySetName = 'salesInvoices';
+    protected ?string $EntitySetName = 'salesInvoices';
 }

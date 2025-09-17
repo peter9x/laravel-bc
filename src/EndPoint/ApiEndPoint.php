@@ -6,15 +6,15 @@ use Mupy\BusinessCentral\QueryFilter\QueryFilterEnum;
 
 abstract class ApiEndPoint
 {
-    protected $APIGroup = '';
+    protected string $APIGroup = '';
 
-    protected $APIPublisher = '';
+    protected string $APIPublisher = '';
 
-    protected $APIVersion = 'v2.0';
+    protected string $APIVersion = 'v2.0';
 
-    protected $EntitySetName = null;
+    protected ?string $EntitySetName = null;
 
-    protected $StaticPath = null;
+    protected ?string $StaticPath = null;
 
     public static $select = [];
 

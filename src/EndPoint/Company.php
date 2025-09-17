@@ -4,7 +4,7 @@ namespace Mupy\BusinessCentral\EndPoint;
 
 class Company extends ApiEndPoint
 {
-    protected string $APIGroup = "";
+    protected string $APIGroup = '';
 
     protected string $APIPublisher = '';
 

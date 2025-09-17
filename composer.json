@@ -6,7 +6,7 @@
     "authors": [
         {
             "name": "Peter",
-            "email": "your-email@example.com"
+            "email": "pedro.teixeira@mupy.io"
         }
     ],
     "homepage": "https://github.com/peter9x/laravel-bc",
@@ -29,7 +29,6 @@
         "pestphp/pest": "^v2.34|^3.7",
         "phpunit/phpunit": "^11.5",
         "orchestra/testbench": "^10.4",
-        "nunomaduro/larastan": "^3.6",
         "laravel/pint": "^1.24"
     },
     "config": {

@@ -2,23 +2,27 @@
 
 namespace Mupy\BusinessCentral\EndPoint;
 
+use Mupy\BusinessCentral\QueryFilter\QueryFilterEnum;
+
 abstract class ApiEndPoint
 {
-    protected string $APIGroup = '';
+    protected $APIGroup = '';
 
-    protected string $APIPublisher = '';
+    protected $APIPublisher = '';
 
-    protected string $APIVersion = 'v2.0';
+    protected $APIVersion = 'v2.0';
 
-    protected string $EntitySetName;
+    protected $EntitySetName = null;
 
-    protected string $StaticPath;
+    protected $StaticPath = null;
 
-    /** @var array<string> */
-    public static array $select = [];
+    public static $select = [];
 
-    /** @var array<string> */
-    private array $filters = [];
+    /** @var array */
+    private $_filters = [];
+
+    /** @var array */
+    private $_select = [];
 
     public function getPath(): string
     {
@@ -40,59 +44,66 @@ abstract class ApiEndPoint
         return $this->APIVersion;
     }
 
-    public function addFilter(string $stringFilter): void
+    public function addFilter(string $string_filters)
     {
-        $this->filters[] = $stringFilter;
+        $this->_filters[] = $string_filters;
     }
 
-    /**
-     * @param  array<string>  $filters
-     */
-    public function addFilters(array $filters): void
+    public function addFilters(array $filters)
     {
         foreach ($filters as $filter) {
             $this->addFilter($filter);
         }
     }
 
-    /**
-     * @param  array<string>  $select
-     */
-    public function select(array $select = []): void
+    public function select(array $select = [])
     {
         if (count($select) > 0) {
-            $this->addFilter('$select='.implode(',', $select));
+            $this->_select = $select;
         }
     }
 
-    public function getQuery(): string
+    public function getQuery(): array
     {
-        return count($this->filters) > 0 ? '?'.implode('&', $this->filters) : '';
+        $query = [];
+
+        if (! empty($this->_select)) {
+            $query[] = '$select='.implode(',', $this->_select);
+        }
+
+        if (! empty($this->_filters)) {
+            $query[] = '$filter='.implode(',', $this->_filters);
+        }
+
+        return $query;
     }
 
-    public function __toString(): string
+    public function __toString()
     {
-        return $this->getQuery();
+        $query = $this->getQuery();
+
+        return count($query) > 0 ? '?'.implode('&', $query) : '';
     }
 
-    public function setStaticPath(string $path): void
+    public function setStaticPath($path)
     {
         $this->StaticPath = $path;
     }
 
-    /**
-     * Cria um endpoint estático
-     */
-    public static function static(string $path): self
+    public static function static($path)
     {
-        $endpoint = new class($path) extends ApiEndPoint
-        {
-            public function __construct(string $path)
-            {
-                $this->setStaticPath($path);
-            }
-        };
+        $endpoint = new ApiEndPoint;
+        $endpoint->setStaticPath($path);
 
         return $endpoint;
+    }
+
+    public static function filter(string $key, mixed $value, QueryFilterEnum $operator): string
+    {
+        if (is_string($value)) {
+            return "{$key} {$operator->value} '{$value}'";
+        } else {
+            return "{$key} {$operator->value} {$value}";
+        }
     }
 }

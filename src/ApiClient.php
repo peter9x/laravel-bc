@@ -18,13 +18,10 @@ class ApiClient
 
     private string $clientSecret;
 
-    private string $database;
+    private ?string $database = null;
 
     private ?string $company = null;
 
-    /**
-     * @param  array{tenant_id: string, client_id: string, client_secret: string, environment: string, company_id?: string}  $connection
-     */
     public function __construct(array $connection, string $apiBaseUrl)
     {
         $requiredKeys = ['tenant_id', 'client_id', 'client_secret', 'environment'];
@@ -84,15 +81,11 @@ class ApiClient
     /**
      * Retrieve a cached access token for the tenant/client combination.
      */
-    /**
-     * @throws \RuntimeException
-     */
     public function getBearer(): string
     {
         $cacheKey = "bc_access_token_{$this->tenant}_{$this->clientId}";
 
-        /** @var string */
-        return Cache::remember($cacheKey, 3500, function (): string {
+        return Cache::remember($cacheKey, 3500, function () {
             $tokenUrl = "https://login.microsoftonline.com/{$this->tenant}/oauth2/v2.0/token";
 
             $response = $this->http->post($tokenUrl, [
@@ -104,12 +97,11 @@ class ApiClient
                 ],
             ]);
 
-            /** @var array{access_token?: string, error_description?: string} $data */
             $data = json_decode((string) $response->getBody(), true);
 
             if (empty($data['access_token'])) {
                 $errorMsg = $data['error_description'] ?? 'Unknown error while fetching access token';
-                throw new RuntimeException('Failed to obtain access token: '.$errorMsg);
+                throw new RuntimeException("Failed to obtain access token: {$errorMsg}");
             }
 
             return $data['access_token'];
@@ -119,9 +111,6 @@ class ApiClient
     /**
      * Perform a GET request to a Business Central API endpoint.
      */
-    /**
-     * @param  array<string, mixed>  $query
-     */
     public function getRequest(ApiEndPoint $target, array $query = []): ApiResponse
     {
         if (empty($this->database)) {
@@ -129,26 +118,20 @@ class ApiClient
         }
 
         $endpoint = $this->buildEndpoint($target);
-
         $response = $this->http->get($endpoint, [
             'headers' => [
                 'Authorization' => 'Bearer '.$this->getBearer(),
                 'Accept' => 'application/json',
             ],
-            'query' => $query,
+            'query' => count($query) > 0 ? '?'.implode('&', $query) : '',
         ]);
 
         return new ApiResponse($response);
     }
 
-    /**
-     * @param  class-string<ApiEndPoint>|string  $target
-     * @param  array<string>|null  $filters
-     */
-    public function get(string $target, ?array $filters = null, bool $full = false): ApiResponse
+    public function get(string $target, array $filters = [], $full = false): ApiResponse
     {
-        if (is_subclass_of($target, ApiEndPoint::class)) {
-            /** @var ApiEndPoint $endpoint */
+        if (class_exists($target)) {
             $endpoint = new $target;
             if ($full === false) {
                 $endpoint->select($endpoint::$select);
@@ -156,12 +139,11 @@ class ApiClient
         } else {
             $endpoint = ApiEndPoint::static($target);
         }
-
-        if ($filters !== null) {
+        if (! empty($filters)) {
             $endpoint->addFilters($filters);
         }
 
-        return $this->getRequest($endpoint);
+        return $this->getRequest($endpoint, $endpoint->getQuery());
     }
 
     /**

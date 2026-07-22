@@ -2,13 +2,14 @@
 
 namespace Tests\Feature;
 
+use Mupy\BusinessCentral\BusinessCentralServiceProvider;
 use Orchestra\Testbench\TestCase;
 
 class BusinessCentralClientTest extends TestCase
 {
     protected function getPackageProviders($app)
     {
-        return [\Mupy\BusinessCentral\BusinessCentralServiceProvider::class];
+        return [BusinessCentralServiceProvider::class];
     }
 
     /** @test */

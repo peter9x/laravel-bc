@@ -62,3 +62,32 @@ try {
     // Handle exceptions as needed
 }
 ```
+
+## Health checks (optional)
+
+If your application uses [spatie/laravel-health](https://spatie.be/docs/laravel-health/v1), this package ships a
+`BusinessCentralCheck` that verifies authentication against your configured Business Central connection(s).
+
+1. Install `spatie/laravel-health` in your application (not required by this package unless you use this feature):
+
+```bash
+composer require spatie/laravel-health
+```
+
+2. Register the check, typically in `AppServiceProvider::boot()`:
+
+```php
+use Mupy\BusinessCentral\HealthChecks\BusinessCentralCheck;
+use Spatie\Health\Facades\Health;
+
+Health::checks([
+    BusinessCentralCheck::new(),
+]);
+```
+
+By default the check authenticates against every connection defined in `config('businesscentral.connections')`.
+To limit it to specific connections:
+
+```php
+BusinessCentralCheck::new()->connections(['default']);
+```

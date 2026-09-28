@@ -39,7 +39,7 @@ class ApiClient
         $this->company = $connection['company_id'] ?? null;
 
         $this->http = new Client([
-            'base_uri' => rtrim($apiBaseUrl, '/') . '/',
+            'base_uri' => rtrim($apiBaseUrl, '/').'/',
             'timeout' => 10.0,
         ]);
     }
@@ -120,11 +120,12 @@ class ApiClient
         $endpoint = $this->buildEndpoint($target);
         $response = $this->http->get($endpoint, [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->getBearer(),
+                'Authorization' => 'Bearer '.$this->getBearer(),
                 'Accept' => 'application/json',
             ],
             'query' => implode('&', $query),
         ]);
+
         return new ApiResponse($response);
     }
 
